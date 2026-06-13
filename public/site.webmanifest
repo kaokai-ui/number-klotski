@@ -1,0 +1,22 @@
+{
+  "name": "數字華容道",
+  "short_name": "華容道",
+  "description": "可遊玩數字華容道、三國華容道與箱入り娘的益智遊戲。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e9d5ab",
+  "theme_color": "#5f4128",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
