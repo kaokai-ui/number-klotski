@@ -1,5 +1,7 @@
 import type { Piece } from "../types/game";
 
+const NUMBER_TILE_IMAGE_SRC = `${import.meta.env.BASE_URL}wbsmall.png`;
+
 interface NumberTileProps {
   boardSize: number;
   piece: Piece;
@@ -17,7 +19,7 @@ export function NumberTile({
 
   return (
     <button
-      className={`tile ${isMovable ? "is-movable" : ""}`}
+      className={`tile tile-number ${isMovable ? "is-movable" : ""}`}
       style={{
         left: `${piece.x * sizePercent}%`,
         top: `${piece.y * sizePercent}%`,
@@ -28,6 +30,13 @@ export function NumberTile({
       aria-label={`移動數字 ${piece.label}`}
       type="button"
     >
+      <img
+        className="number-tile-img"
+        src={NUMBER_TILE_IMAGE_SRC}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+      />
       <span>{piece.label}</span>
     </button>
   );
