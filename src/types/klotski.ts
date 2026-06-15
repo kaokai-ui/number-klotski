@@ -1,4 +1,11 @@
-import type { BoardSpec, Difficulty, GameStats, KlotskiMode, Piece } from "./game";
+import type {
+  BoardSpec,
+  Difficulty,
+  Direction,
+  GameStats,
+  KlotskiMode,
+  Piece,
+} from "./game";
 
 export interface KlotskiExit {
   x: number;
@@ -16,6 +23,12 @@ export interface KlotskiLevel {
   pieces: Piece[];
   optimalMoves?: number;
   parMoves?: number;
+}
+
+export interface KlotskiMoveOption {
+  direction: Direction;
+  distance: number;
+  targetRect: Piece;
 }
 
 export interface KlotskiState {

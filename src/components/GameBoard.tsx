@@ -1,5 +1,9 @@
-import type { BoardSpec, Direction, Piece } from "../types/game";
-import type { KlotskiExit, KlotskiLevel } from "../types/klotski";
+import type { BoardSpec, Piece } from "../types/game";
+import type {
+  KlotskiExit,
+  KlotskiLevel,
+  KlotskiMoveOption,
+} from "../types/klotski";
 import { KlotskiGameBoard } from "./KlotskiGameBoard";
 import { NumberGameBoard } from "./NumberGameBoard";
 
@@ -18,9 +22,9 @@ type GameBoardProps =
       level: KlotskiLevel;
       exit: KlotskiExit;
       selectedPieceId: string | null;
-      selectedKlotskiMoves: Direction[];
+      selectedKlotskiMoves: KlotskiMoveOption[];
       onPieceClick: (pieceId: string) => void;
-      onKlotskiMoveClick: (direction: Direction) => void;
+      onKlotskiMoveClick: (move: KlotskiMoveOption) => void;
     };
 
 export function GameBoard(props: GameBoardProps) {

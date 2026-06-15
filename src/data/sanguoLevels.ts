@@ -1,25 +1,44 @@
+import type { Piece } from "../types/game";
 import type { KlotskiLevel } from "../types/klotski";
+import { sanguoOpenings, type SanguoOpeningDefinition } from "./sanguoOpenings";
 
-export const sanguoLevels: KlotskiLevel[] = [
-  {
-    id: "classic-001",
-    title: "經典華容道",
-    difficulty: "normal",
-    board: { cols: 4, rows: 5 },
-    exit: { x: 1, y: 4, width: 2, height: 1 },
-    optimalMoves: 81,
-    parMoves: 100,
-    pieces: [
-      { id: "cao-cao", role: "hero", label: "曹操", x: 1, y: 0, w: 2, h: 2 },
-      { id: "zhang-fei", role: "tall", label: "張飛", x: 0, y: 0, w: 1, h: 2 },
-      { id: "zhao-yun", role: "tall", label: "趙雲", x: 3, y: 0, w: 1, h: 2 },
-      { id: "ma-chao", role: "tall", label: "馬超", x: 0, y: 2, w: 1, h: 2 },
-      { id: "huang-zhong", role: "tall", label: "黃忠", x: 3, y: 2, w: 1, h: 2 },
-      { id: "guan-yu", role: "wide", label: "關羽", x: 1, y: 2, w: 2, h: 1 },
-      { id: "soldier-1", role: "soldier", label: "兵", x: 1, y: 3, w: 1, h: 1 },
-      { id: "soldier-2", role: "soldier", label: "兵", x: 2, y: 3, w: 1, h: 1 },
-      { id: "soldier-3", role: "soldier", label: "兵", x: 0, y: 4, w: 1, h: 1 },
-      { id: "soldier-4", role: "soldier", label: "兵", x: 3, y: 4, w: 1, h: 1 },
-    ],
-  },
-];
+const SANGUO_BOARD = { cols: 4, rows: 5 };
+const SANGUO_EXIT = { x: 1, y: 4, width: 2, height: 1 };
+
+function buildSanguoPieces(opening: SanguoOpeningDefinition): Piece[] {
+  const blockIds = [
+    { id: "block-1", label: "將", role: "blocker" as const },
+    { id: "block-2", label: "將", role: "blocker" as const },
+    { id: "block-3", label: "將", role: "blocker" as const },
+    { id: "block-4", label: "將", role: "blocker" as const },
+  ];
+
+  const soldierIds = [
+    { id: "soldier-1", label: "兵", role: "soldier" as const },
+    { id: "soldier-2", label: "兵", role: "soldier" as const },
+    { id: "soldier-3", label: "兵", role: "soldier" as const },
+    { id: "soldier-4", label: "兵", role: "soldier" as const },
+  ];
+
+  return [
+    { id: "cao-cao", label: "曹操", role: "hero", ...opening.hero },
+    { id: "special", label: "關", role: "wide", ...opening.special },
+    ...opening.blocks.map((rect, index) => ({ ...blockIds[index], ...rect })),
+    ...opening.soldiers.map((rect, index) => ({ ...soldierIds[index], ...rect })),
+  ];
+}
+
+function buildSanguoLevel(opening: SanguoOpeningDefinition): KlotskiLevel {
+  return {
+    id: opening.id,
+    title: opening.title,
+    difficulty: opening.difficulty,
+    board: SANGUO_BOARD,
+    exit: SANGUO_EXIT,
+    pieces: buildSanguoPieces(opening),
+    optimalMoves: opening.optimalMoves,
+    parMoves: opening.parMoves,
+  };
+}
+
+export const sanguoLevels: KlotskiLevel[] = sanguoOpenings.map(buildSanguoLevel);

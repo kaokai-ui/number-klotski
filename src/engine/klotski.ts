@@ -1,6 +1,10 @@
 import { buildOccupancyMap, createBoardSpec, indexFromCoord } from "./board";
 import type { Direction, GameStats, KlotskiMode, Move, Piece } from "../types/game";
-import type { KlotskiLevel, KlotskiState } from "../types/klotski";
+import type {
+  KlotskiLevel,
+  KlotskiMoveOption,
+  KlotskiState,
+} from "../types/klotski";
 
 const directionVectors: Record<Direction, { x: number; y: number }> = {
   up: { x: 0, y: -1 },
@@ -121,6 +125,43 @@ export function getAvailableMoves(
   );
 }
 
+export function getAvailableMoveOptions(
+  level: KlotskiLevel,
+  pieces: Piece[],
+  pieceId: string,
+): KlotskiMoveOption[] {
+  const moveOptions: KlotskiMoveOption[] = [];
+
+  for (const direction of ["up", "down", "left", "right"] as const) {
+    let distance = 0;
+    let nextPieces = pieces;
+
+    while (canMovePiece(level, nextPieces, pieceId, direction)) {
+      distance += 1;
+      nextPieces = applyKlotskiMove(nextPieces, pieceId, direction);
+
+      const targetRect = getKlotskiMoveTargetRect(
+        pieces,
+        pieceId,
+        direction,
+        distance,
+      );
+
+      if (!targetRect) {
+        break;
+      }
+
+      moveOptions.push({
+        direction,
+        distance,
+        targetRect,
+      });
+    }
+  }
+
+  return moveOptions;
+}
+
 export function getMovablePieceIds(level: KlotskiLevel, pieces: Piece[]): string[] {
   return pieces
     .filter((piece) => getAvailableMoves(level, pieces, piece.id).length > 0)
@@ -131,12 +172,17 @@ export function applyKlotskiMove(
   pieces: Piece[],
   pieceId: string,
   direction: Direction,
+  distance = 1,
 ): Piece[] {
   const delta = directionVectors[direction];
 
   return pieces.map((piece) =>
     piece.id === pieceId
-      ? { ...piece, x: piece.x + delta.x, y: piece.y + delta.y }
+      ? {
+          ...piece,
+          x: piece.x + delta.x * distance,
+          y: piece.y + delta.y * distance,
+        }
       : piece,
   );
 }
@@ -145,6 +191,7 @@ export function getKlotskiMoveTargetRect(
   pieces: Piece[],
   pieceId: string,
   direction: Direction,
+  distance = 1,
 ): Piece | null {
   const piece = getPieceById(pieces, pieceId);
   if (!piece) {
@@ -156,7 +203,7 @@ export function getKlotskiMoveTargetRect(
       return {
         ...piece,
         x: piece.x,
-        y: piece.y - 1,
+        y: piece.y - distance,
         w: piece.w,
         h: 1,
       };
@@ -164,14 +211,14 @@ export function getKlotskiMoveTargetRect(
       return {
         ...piece,
         x: piece.x,
-        y: piece.y + piece.h,
+        y: piece.y + piece.h + distance - 1,
         w: piece.w,
         h: 1,
       };
     case "left":
       return {
         ...piece,
-        x: piece.x - 1,
+        x: piece.x - distance,
         y: piece.y,
         w: 1,
         h: piece.h,
@@ -179,7 +226,7 @@ export function getKlotskiMoveTargetRect(
     case "right":
       return {
         ...piece,
-        x: piece.x + piece.w,
+        x: piece.x + piece.w + distance - 1,
         y: piece.y,
         w: 1,
         h: piece.h,
@@ -200,12 +247,16 @@ export function isKlotskiSolved(level: KlotskiLevel, pieces: Piece[]): boolean {
   );
 }
 
-export function createKlotskiMove(pieceId: string, direction: Direction): Move {
+export function createKlotskiMove(
+  pieceId: string,
+  direction: Direction,
+  distance = 1,
+): Move {
   const timestamp = Date.now();
   return {
     pieceId,
     direction,
-    distance: 1,
+    distance,
     startedAt: timestamp,
     endedAt: timestamp,
   };

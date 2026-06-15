@@ -1,9 +1,12 @@
 import { hakoiriLevels } from "../data/hakoiriLevels";
 import { sanguoLevels } from "../data/sanguoLevels";
+import { DEFAULT_SANGUO_OPENING_ID, sanguoOpenings } from "../data/sanguoOpenings";
+import type { KlotskiLevel } from "../types/klotski";
 import {
   applyKlotskiMove,
   canMovePiece,
   createKlotskiState,
+  getAvailableMoveOptions,
   getAvailableMoves,
   getKlotskiMoveTargetRect,
   getMovablePieceIds,
@@ -12,9 +15,25 @@ import {
 } from "./klotski";
 
 describe("klotski engine", () => {
+  it("sanguo openings count is 48", () => {
+    expect(sanguoOpenings).toHaveLength(48);
+    expect(sanguoLevels).toHaveLength(48);
+  });
+
+  it("default sanguo opening id is heng-dao-li-ma", () => {
+    expect(DEFAULT_SANGUO_OPENING_ID).toBe("heng-dao-li-ma");
+    expect(sanguoLevels[0].id).toBe("heng-dao-li-ma");
+  });
+
   it("validates every configured level", () => {
     expect(() => sanguoLevels.forEach(validateKlotskiLevel)).not.toThrow();
     expect(() => hakoiriLevels.forEach(validateKlotskiLevel)).not.toThrow();
+  });
+
+  it("all 48 sanguo openings pass validation", () => {
+    for (const level of sanguoLevels) {
+      expect(() => validateKlotskiLevel(level)).not.toThrow();
+    }
   });
 
   it("rejects overlapping pieces", () => {
@@ -53,7 +72,7 @@ describe("klotski engine", () => {
       h: 1,
     });
     expect(
-      getKlotskiMoveTargetRect(sanguoLevels[0].pieces, "guan-yu", "down"),
+      getKlotskiMoveTargetRect(sanguoLevels[0].pieces, "special", "down"),
     ).toMatchObject({
       x: 1,
       y: 3,
@@ -61,7 +80,7 @@ describe("klotski engine", () => {
       h: 1,
     });
     expect(
-      getKlotskiMoveTargetRect(sanguoLevels[0].pieces, "zhang-fei", "right"),
+      getKlotskiMoveTargetRect(sanguoLevels[0].pieces, "block-1", "right"),
     ).toMatchObject({
       x: 1,
       y: 0,
@@ -77,9 +96,56 @@ describe("klotski engine", () => {
     expect(isKlotskiSolved(sanguoLevels[0], sanguoLevels[0].pieces)).toBe(false);
   });
 
+  it("supports sliding through multiple contiguous empty cells", () => {
+    const level: KlotskiLevel = {
+      id: "multi-slide",
+      title: "Multi Slide",
+      difficulty: "easy",
+      board: { cols: 4, rows: 5 },
+      exit: { x: 1, y: 4, width: 2, height: 1 },
+      pieces: [
+        { id: "hero", role: "hero", label: "曹操", x: 2, y: 0, w: 2, h: 2 },
+        { id: "top-blocker", role: "tall", label: "將", x: 0, y: 1, w: 1, h: 2 },
+        { id: "slider", role: "soldier", label: "兵", x: 0, y: 3, w: 1, h: 1 },
+        { id: "bottom-blocker", role: "soldier", label: "卒", x: 0, y: 4, w: 1, h: 1 },
+      ],
+    };
+
+    expect(getAvailableMoves(level, level.pieces, "slider")).toEqual(["right"]);
+    expect(getAvailableMoveOptions(level, level.pieces, "slider")).toEqual([
+      {
+        direction: "right",
+        distance: 1,
+        targetRect: expect.objectContaining({ x: 1, y: 3, w: 1, h: 1 }),
+      },
+      {
+        direction: "right",
+        distance: 2,
+        targetRect: expect.objectContaining({ x: 2, y: 3, w: 1, h: 1 }),
+      },
+      {
+        direction: "right",
+        distance: 3,
+        targetRect: expect.objectContaining({ x: 3, y: 3, w: 1, h: 1 }),
+      },
+    ]);
+
+    expect(
+      getKlotskiMoveTargetRect(level.pieces, "slider", "right", 3),
+    ).toMatchObject({
+      x: 3,
+      y: 3,
+      w: 1,
+      h: 1,
+    });
+    expect(applyKlotskiMove(level.pieces, "slider", "right", 3)).toContainEqual(
+      expect.objectContaining({ id: "slider", x: 3, y: 3 }),
+    );
+  });
+
   it("creates a playable state", () => {
     const state = createKlotskiState(sanguoLevels[0]);
-    expect(state.level.id).toBe("classic-001");
+    expect(state.level.id).toBe("heng-dao-li-ma");
     expect(state.mode).toBe("sanguo");
     expect(state.pieces).toHaveLength(10);
   });

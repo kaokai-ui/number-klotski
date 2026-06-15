@@ -4,9 +4,11 @@ import { ModeSwitch } from "./components/ModeSwitch";
 import { hakoiriLevels } from "./data/hakoiriLevels";
 import { numberDifficulties } from "./data/numberDifficulties";
 import { sanguoLevels } from "./data/sanguoLevels";
+import { DEFAULT_SANGUO_OPENING_ID, sanguoOpenings } from "./data/sanguoOpenings";
 import {
   applyKlotskiMove,
   createKlotskiState,
+  getAvailableMoveOptions,
   getAvailableMoves,
   isKlotskiSolved,
 } from "./engine/klotski";
@@ -19,7 +21,7 @@ import {
   tilesToPieces,
 } from "./engine/numberPuzzle";
 import type { Direction, GameMode, GameStats, KlotskiMode } from "./types/game";
-import type { KlotskiState } from "./types/klotski";
+import type { KlotskiMoveOption, KlotskiState } from "./types/klotski";
 import type {
   NumberDifficultyConfig,
   NumberPuzzleState,
@@ -108,14 +110,14 @@ function applyMoveStats(
 export default function App() {
   const [mode, setMode] = useState<GameMode>("number");
   const [difficulty, setDifficulty] = useState(numberDifficulties[0]);
-  const [selectedSanguoLevelId, setSelectedSanguoLevelId] = useState(
-    sanguoLevels[0].id,
+  const [selectedSanguoOpeningId, setSelectedSanguoOpeningId] = useState(
+    DEFAULT_SANGUO_OPENING_ID,
   );
   const [numberGame, setNumberGame] = useState(() =>
     buildFreshNumberState(numberDifficulties[0]),
   );
   const [klotskiGame, setKlotskiGame] = useState(() =>
-    buildFreshKlotskiState("sanguo", sanguoLevels[0].id),
+    buildFreshKlotskiState("sanguo", DEFAULT_SANGUO_OPENING_ID),
   );
 
   const activeGame = mode === "number" ? numberGame : klotskiGame;
@@ -139,17 +141,17 @@ export default function App() {
     setKlotskiGame(
       buildFreshKlotskiState(
         activeKlotskiMode,
-        activeKlotskiMode === "sanguo" ? selectedSanguoLevelId : undefined,
+        activeKlotskiMode === "sanguo" ? selectedSanguoOpeningId : undefined,
       ),
     );
-  }, [activeKlotskiMode, mode, selectedSanguoLevelId]);
+  }, [activeKlotskiMode, mode, selectedSanguoOpeningId]);
 
-  const klotskiAvailableMoves = useMemo(() => {
+  const klotskiMoveOptions = useMemo(() => {
     if (!klotskiGame.selectedPieceId) {
       return [];
     }
 
-    return getAvailableMoves(
+    return getAvailableMoveOptions(
       klotskiGame.level,
       klotskiGame.pieces,
       klotskiGame.selectedPieceId,
@@ -160,6 +162,12 @@ export default function App() {
     klotskiGame.selectedPieceId,
   ]);
 
+  const klotskiAvailableMoves = useMemo(
+    () =>
+      [...new Set(klotskiMoveOptions.map((move) => move.direction))] as Direction[],
+    [klotskiMoveOptions],
+  );
+
   function restartCurrentGame() {
     if (mode === "number") {
       setNumberGame(buildFreshNumberState(difficulty));
@@ -169,9 +177,13 @@ export default function App() {
     setKlotskiGame(
       buildFreshKlotskiState(
         activeKlotskiMode,
-        activeKlotskiMode === "sanguo" ? selectedSanguoLevelId : undefined,
+        activeKlotskiMode === "sanguo" ? selectedSanguoOpeningId : undefined,
       ),
     );
+  }
+
+  function handleSanguoOpeningChange(openingId: string) {
+    setSelectedSanguoOpeningId(openingId || DEFAULT_SANGUO_OPENING_ID);
   }
 
   function handleNumberTileClick(tileIndex: number) {
@@ -199,25 +211,31 @@ export default function App() {
     });
   }
 
-  function applyKlotskiDirection(direction: Direction) {
+  function applyKlotskiMoveOption(move: KlotskiMoveOption) {
     setKlotskiGame((current) => {
       if (current.status === "solved" || !current.selectedPieceId) {
         return current;
       }
 
-      const availableMoves = getAvailableMoves(
+      const availableMoveOptions = getAvailableMoveOptions(
         current.level,
         current.pieces,
         current.selectedPieceId,
       );
-      if (!availableMoves.includes(direction)) {
+      const matchingMove = availableMoveOptions.find(
+        (option) =>
+          option.direction === move.direction && option.distance === move.distance,
+      );
+
+      if (!matchingMove) {
         return current;
       }
 
       const nextPieces = applyKlotskiMove(
         current.pieces,
         current.selectedPieceId,
-        direction,
+        move.direction,
+        move.distance,
       );
       const solved = isKlotskiSolved(current.level, nextPieces);
       const nextStats = applyMoveStats(current.stats, solved);
@@ -231,6 +249,18 @@ export default function App() {
         stats: nextStats,
       };
     });
+  }
+
+  function applyKlotskiDirection(direction: Direction) {
+    const furthestMove = [...klotskiMoveOptions]
+      .reverse()
+      .find((move) => move.direction === direction);
+
+    if (!furthestMove) {
+      return;
+    }
+
+    applyKlotskiMoveOption(furthestMove);
   }
 
   function handleKlotskiPieceClick(pieceId: string) {
@@ -283,21 +313,20 @@ export default function App() {
             </div>
           ) : mode === "sanguo" ? (
             <div className="control-section control-section-inline">
-              <span className="control-label">三國關卡</span>
-              <div className="difficulty-row" aria-label="選擇三國關卡">
-                {sanguoLevels.map((level) => (
-                  <button
-                    key={level.id}
-                    type="button"
-                    className={`difficulty-button ${
-                      level.id === selectedSanguoLevelId ? "is-active" : ""
-                    }`}
-                    onClick={() => setSelectedSanguoLevelId(level.id)}
-                  >
-                    {level.title}
-                  </button>
+              <label className="control-label" htmlFor="sanguo-opening-select">三國關卡</label>
+              <select
+                id="sanguo-opening-select"
+                className="sanguo-opening-select"
+                value={selectedSanguoOpeningId}
+                onChange={(e) => handleSanguoOpeningChange(e.target.value)}
+                aria-label="選擇三國關卡"
+              >
+                {sanguoOpenings.map((opening) => (
+                  <option key={opening.id} value={opening.id}>
+                    {opening.title}
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
           ) : null}
         </div>
@@ -320,9 +349,9 @@ export default function App() {
             level={klotskiGame.level}
             exit={klotskiGame.exit}
             selectedPieceId={klotskiGame.selectedPieceId}
-            selectedKlotskiMoves={klotskiAvailableMoves}
+            selectedKlotskiMoves={klotskiMoveOptions}
             onPieceClick={handleKlotskiPieceClick}
-            onKlotskiMoveClick={applyKlotskiDirection}
+            onKlotskiMoveClick={applyKlotskiMoveOption}
           />
         )}
 

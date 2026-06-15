@@ -343,6 +343,37 @@ button {
   font-size: clamp(1rem, 3.7vw, 1.7rem);
 }
 
+.tile-sanguo {
+  padding: 4px;
+  overflow: hidden;
+}
+
+.tile-sanguo.role-hero .sanguo-piece-img {
+  border-radius: 18px;
+}
+
+.tile-sanguo .sanguo-piece-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.tile-sanguo.is-horizontal .sanguo-piece-img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 50%;
+  height: 200%;
+  max-width: none;
+  object-fit: cover;
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center center;
+}
+
 .tile-sanguo.role-hero {
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0, rgba(255, 255, 255, 0.08) 1px, transparent 1px, transparent 24px),
@@ -350,32 +381,50 @@ button {
     linear-gradient(180deg, var(--color-hero-light) 0%, var(--color-hero) 100%);
 }
 
-.tile-sanguo.role-soldier span {
-  font-size: clamp(0.95rem, 3vw, 1.2rem);
+.tile-sanguo.role-soldier span,
+.tile-sanguo.role-wide span,
+.tile-sanguo.role-blocker span {
+  display: none;
+}
+
+.sanguo-opening-select {
+  width: 100%;
+  max-width: 240px;
+  padding: 10px 14px;
+  border: 1px solid rgba(114, 75, 37, 0.24);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 217, 0.92), rgba(230, 204, 152, 0.92));
+  color: var(--color-accent-strong);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235d4419' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+.sanguo-opening-select:focus {
+  outline: 3px solid rgba(47, 111, 115, 0.28);
+  outline-offset: -2px;
 }
 
 .move-target {
   position: absolute;
-  display: grid;
-  place-items: center;
   border: 0;
-  border-radius: 22px;
-  background: rgba(123, 95, 45, 0.24);
-  color: #4a3512;
-  box-shadow:
-    inset 0 0 0 2px rgba(123, 95, 45, 0.34),
-    0 10px 18px rgba(82, 59, 19, 0.14);
-  backdrop-filter: blur(4px);
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
   z-index: 2;
-}
-
-.move-target span {
-  font-size: clamp(1rem, 4vw, 1.5rem);
-  font-weight: 800;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .move-target:hover {
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .stats-card {
@@ -463,6 +512,20 @@ button {
   .hero-panel {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1180px) {
+  .board-shell-klotski {
+    padding-bottom: 56px;
+  }
+
+  .board-grid-klotski {
+    width: min(72vw, 460px);
+  }
+
+  .board-exit-label {
+    bottom: -54px;
   }
 }
 

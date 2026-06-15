@@ -1,10 +1,13 @@
 import type { CSSProperties } from "react";
 import {
-  getKlotskiMoveTargetRect,
   getMovablePieceIds,
 } from "../engine/klotski";
 import type { BoardSpec, Direction, Piece } from "../types/game";
-import type { KlotskiExit, KlotskiLevel } from "../types/klotski";
+import type {
+  KlotskiExit,
+  KlotskiLevel,
+  KlotskiMoveOption,
+} from "../types/klotski";
 import { SanguoPiece } from "./SanguoPiece";
 
 const directionLabels: Record<Direction, string> = {
@@ -20,9 +23,9 @@ interface KlotskiGameBoardProps {
   level: KlotskiLevel;
   exit: KlotskiExit;
   selectedPieceId: string | null;
-  selectedKlotskiMoves: Direction[];
+  selectedKlotskiMoves: KlotskiMoveOption[];
   onPieceClick: (pieceId: string) => void;
-  onKlotskiMoveClick: (direction: Direction) => void;
+  onKlotskiMoveClick: (move: KlotskiMoveOption) => void;
 }
 
 export function KlotskiGameBoard({
@@ -42,27 +45,7 @@ export function KlotskiGameBoard({
   } as CSSProperties;
 
   const movablePieceIds = new Set(getMovablePieceIds(level, pieces));
-
-  const moveTargets = selectedPieceId
-    ? selectedKlotskiMoves
-        .map((direction) => {
-          const targetRect = getKlotskiMoveTargetRect(
-            pieces,
-            selectedPieceId,
-            direction,
-          );
-
-          if (!targetRect) {
-            return null;
-          }
-
-          return { direction, targetRect };
-        })
-        .filter(
-          (entry): entry is { direction: Direction; targetRect: Piece } =>
-            entry !== null,
-        )
-    : [];
+  const moveTargets = selectedPieceId ? selectedKlotskiMoves : [];
 
   return (
     <section
@@ -70,12 +53,6 @@ export function KlotskiGameBoard({
       aria-label={`${board.cols} x ${board.rows} ${level.title}棋盤`}
     >
       <div className="board-grid board-grid-klotski" style={boardStyle}>
-        <div className="board-background" aria-hidden="true">
-          {Array.from({ length: board.cols * board.rows }, (_, index) => (
-            <div key={`cell-${index}`} className="board-cell" />
-          ))}
-        </div>
-
         <div
           className="board-exit"
           aria-hidden="true"
@@ -120,22 +97,20 @@ export function KlotskiGameBoard({
           />
         ))}
 
-        {moveTargets.map(({ direction, targetRect }) => (
+        {moveTargets.map((move) => (
           <button
-            key={`${selectedPieceId}-${direction}`}
+            key={`${selectedPieceId}-${move.direction}-${move.distance}`}
             type="button"
-            className={`move-target move-target-${direction}`}
+            className={`move-target move-target-${move.direction}`}
             style={{
-              left: `${(targetRect.x / board.cols) * 100}%`,
-              top: `${(targetRect.y / board.rows) * 100}%`,
-              width: `${(targetRect.w / board.cols) * 100}%`,
-              height: `${(targetRect.h / board.rows) * 100}%`,
+              left: `${(move.targetRect.x / board.cols) * 100}%`,
+              top: `${(move.targetRect.y / board.rows) * 100}%`,
+              width: `${(move.targetRect.w / board.cols) * 100}%`,
+              height: `${(move.targetRect.h / board.rows) * 100}%`,
             }}
-            onClick={() => onKlotskiMoveClick(direction)}
-            aria-label={`將目前選中棋子往${directionLabels[direction]}移動`}
-          >
-            <span>{directionLabels[direction]}</span>
-          </button>
+            onClick={() => onKlotskiMoveClick(move)}
+            aria-label={`將目前選中棋子往${directionLabels[move.direction]}移動 ${move.distance} 格`}
+          />
         ))}
       </div>
     </section>
