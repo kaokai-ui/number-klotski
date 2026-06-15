@@ -381,9 +381,9 @@ button {
     linear-gradient(180deg, var(--color-hero-light) 0%, var(--color-hero) 100%);
 }
 
-.tile-sanguo.role-soldier span,
-.tile-sanguo.role-wide span,
-.tile-sanguo.role-blocker span {
+.tile-sanguo.has-image.role-soldier span,
+.tile-sanguo.has-image.role-wide span,
+.tile-sanguo.has-image.role-blocker span {
   display: none;
 }
 

@@ -37,7 +37,7 @@ export function SanguoPiece({
 
   return (
     <button
-      className={`tile tile-sanguo role-${piece.role} ${
+      className={`tile tile-sanguo ${imgSrc ? "has-image" : ""} role-${piece.role} ${
         isMovable ? "is-movable" : ""
       } ${isSelected ? "is-selected" : ""} ${
         isHorizontal ? "is-horizontal" : ""
