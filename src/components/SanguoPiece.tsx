@@ -1,16 +1,18 @@
 import type { Piece } from "../types/game";
 
+const ROLE_IMAGE_BASE = `${import.meta.env.BASE_URL}role/`;
+
 const ROLE_IMAGE_MAP: Record<string, string> = {
-  "cao-cao": "/role/cao-cao.png",
-  special: "/role/special.png",
-  "block-1": "/role/block-1.png",
-  "block-2": "/role/block-2.png",
-  "block-3": "/role/block-3.png",
-  "block-4": "/role/block-4.png",
-  "soldier-1": "/role/solider-1.png",
-  "soldier-2": "/role/solider-2.png",
-  "soldier-3": "/role/solider-3.png",
-  "soldier-4": "/role/solider-4.png",
+  "cao-cao": `${ROLE_IMAGE_BASE}cao-cao.png`,
+  special: `${ROLE_IMAGE_BASE}special.png`,
+  "block-1": `${ROLE_IMAGE_BASE}block-1.png`,
+  "block-2": `${ROLE_IMAGE_BASE}block-2.png`,
+  "block-3": `${ROLE_IMAGE_BASE}block-3.png`,
+  "block-4": `${ROLE_IMAGE_BASE}block-4.png`,
+  "soldier-1": `${ROLE_IMAGE_BASE}solider-1.png`,
+  "soldier-2": `${ROLE_IMAGE_BASE}solider-2.png`,
+  "soldier-3": `${ROLE_IMAGE_BASE}solider-3.png`,
+  "soldier-4": `${ROLE_IMAGE_BASE}solider-4.png`,
 };
 
 interface SanguoPieceProps {
